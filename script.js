@@ -1,10 +1,6 @@
-// Page navigation
-function showPage(pageId) {
-  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-  document.getElementById(pageId).classList.add("active");
-
-  if (pageId === "teacherDashboard") loadTeacherDashboard();
-  if (pageId === "studentHistory") loadStudentHistory();
+function showPage(id) {
+  document.querySelectorAll(".page").forEach(p => p.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
 }
 
 // Teacher login
@@ -13,7 +9,9 @@ function teacherLogin() {
   let pass = document.getElementById("teacherPass").value;
   if (user === "teacher" && pass === "1234") {
     localStorage.setItem("teacherLoggedIn", "true");
-    showPage("teacherPortal");
+    document.getElementById("teacherName").innerText = user;
+    showPage("teacherDashboard");
+    updateDashboard();
   } else {
     document.getElementById("teacherMsg").innerText = "❌ Invalid credentials!";
   }
@@ -25,96 +23,70 @@ function studentLogin() {
   let pass = document.getElementById("studentPass").value;
   if (user === "student" && pass === "1234") {
     localStorage.setItem("studentLoggedIn", "true");
-    showPage("studentPortal");
+    localStorage.setItem("studentName", user);
+    showPage("student");
   } else {
     document.getElementById("studentMsg").innerText = "❌ Invalid credentials!";
   }
 }
 
-// Logout
-function logout(role) {
-  if (role === "teacher") localStorage.removeItem("teacherLoggedIn");
-  if (role === "student") localStorage.removeItem("studentLoggedIn");
-  showPage("home");
-}
-
-// QR Code generation
+// Teacher QR generator
 function generateQR() {
-  let teacherName = document.getElementById("teacherName").value;
   let subject = document.getElementById("subject").value;
   let className = document.getElementById("className").value;
-  let date = new Date().toLocaleDateString();
+  let teacherName = document.getElementById("teacherName").innerText;
 
-  let qrText = `${teacherName} | ${subject} | ${className} | ${date}`;
+  let qrData = JSON.stringify({ teacherName, subject, className, date: new Date().toLocaleString() });
+
   document.getElementById("qrcode").innerHTML = "";
-  new QRCode(document.getElementById("qrcode"), qrText);
-  document.getElementById("qrText").innerText = qrText;
-
-  let sessions = JSON.parse(localStorage.getItem("teacherSessions")) || [];
-  sessions.push({ teacherName, subject, className, date });
-  localStorage.setItem("teacherSessions", JSON.stringify(sessions));
+  new QRCode(document.getElementById("qrcode"), qrData);
 }
 
-// Teacher dashboard
-function loadTeacherDashboard() {
-  let sessions = JSON.parse(localStorage.getItem("teacherSessions")) || [];
-  let studentHistory = JSON.parse(localStorage.getItem("attendanceHistory")) || [];
-  let tbody = document.getElementById("sessionTable");
-  tbody.innerHTML = "";
-
-  if (sessions.length === 0) {
-    tbody.innerHTML = "<tr><td colspan='5'>No sessions yet</td></tr>";
-  } else {
-    sessions.forEach(session => {
-      let count = studentHistory.filter(r =>
-        r.teacherName === session.teacherName &&
-        r.subject === session.subject &&
-        r.className === session.className &&
-        r.date === session.date
-      ).length;
-
-      let row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${session.teacherName}</td>
-        <td>${session.subject}</td>
-        <td>${session.className}</td>
-        <td>${session.date}</td>
-        <td>${count}</td>
-      `;
-      tbody.appendChild(row);
-    });
-  }
-}
-
-// Student QR scanning
+// Student QR scanner
 function startScan() {
   document.getElementById("reader").style.display = "block";
-  const html5QrCode = new Html5Qrcode("reader");
+  let html5QrCode = new Html5Qrcode("reader");
 
   html5QrCode.start(
     { facingMode: "environment" },
     { fps: 10, qrbox: 250 },
-    (decodedText) => {
-      let parts = decodedText.split(" | ");
-      if (parts.length >= 4) {
-        let [teacherName, subject, className, date] = parts;
-        document.getElementById("result").innerHTML = `
-          ✅ Attendance marked! <br>
-          👨‍🏫 ${teacherName} <br>
-          📘 ${subject} <br>
-          🏫 ${className} <br>
-          📅 ${date}
-        `;
-        let history = JSON.parse(localStorage.getItem("attendanceHistory")) || [];
-        history.push({ teacherName, subject, className, date });
-        localStorage.setItem("attendanceHistory", JSON.stringify(history));
-        html5QrCode.stop();
-        setTimeout(() => showPage("curriculum"), 2500);
-      }
+    qrCodeMessage => {
+      onScanSuccess(qrCodeMessage);
+      html5QrCode.stop();
+      document.getElementById("reader").style.display = "none";
     }
-  ).catch(err => {
-    document.getElementById("result").innerText = "❌ Camera error: " + err;
-  });
+  );
+}
+
+function onScanSuccess(qrMessage) {
+  try {
+    let data = JSON.parse(qrMessage);
+    let studentName = localStorage.getItem("studentName") || "Unknown Student";
+
+    let records = JSON.parse(localStorage.getItem("attendanceRecords")) || [];
+    records.push({
+      teacherName: data.teacherName,
+      subject: data.subject,
+      className: data.className,
+      date: data.date,
+      student: studentName
+    });
+    localStorage.setItem("attendanceRecords", JSON.stringify(records));
+
+    // Save student history
+    let history = JSON.parse(localStorage.getItem("attendanceHistory")) || [];
+    history.push({
+      teacherName: data.teacherName,
+      subject: data.subject,
+      className: data.className,
+      date: data.date
+    });
+    localStorage.setItem("attendanceHistory", JSON.stringify(history));
+
+    document.getElementById("result").innerText = "✅ Attendance marked!";
+  } catch (e) {
+    document.getElementById("result").innerText = "⚠️ Invalid QR!";
+  }
 }
 
 // Student history
@@ -139,3 +111,29 @@ function loadStudentHistory() {
   }
 }
 
+// Teacher dashboard
+function updateDashboard() {
+  let records = JSON.parse(localStorage.getItem("attendanceRecords")) || [];
+  let today = new Date().toISOString().slice(0, 10);
+
+  let todayCount = records.filter(r => r.date.includes(today)).length;
+  document.getElementById("attendanceCount").innerText = todayCount;
+
+  let tableBody = document.getElementById("attendanceTable");
+  tableBody.innerHTML = "";
+  records.forEach(r => {
+    let row = `<tr>
+      <td>${r.student}</td>
+      <td>${r.subject}</td>
+      <td>${r.className}</td>
+      <td>${r.date}</td>
+    </tr>`;
+    tableBody.innerHTML += row;
+  });
+}
+
+function logout(role) {
+  if (role === "teacher") localStorage.removeItem("teacherLoggedIn");
+  if (role === "student") localStorage.removeItem("studentLoggedIn");
+  showPage("home");
+}
