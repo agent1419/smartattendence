@@ -37,6 +37,28 @@
     <button onclick="showPage('teacherDashboard')">📊 Dashboard</button>
     <button onclick="logout('teacher')">🚪 Logout</button>
   </section>
+  <section id="teacherDashboard" class="page hidden">
+  <h1>📊 Teacher Dashboard</h1>
+  <p>Welcome, <span id="teacherName"></span></p>
+  
+  <h2>Attendance Today: <span id="attendanceCount">0</span></h2>
+
+  <!-- Table to show attendance details -->
+  <table border="1" style="margin:20px auto; border-collapse: collapse; width:80%;">
+    <thead>
+      <tr>
+        <th>Student</th>
+        <th>Subject</th>
+        <th>Class</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody id="attendanceTable"></tbody>
+  </table>
+
+  <a href="#" onclick="logout('teacher')">🚪 Logout</a>
+</section>
+
 
   <!-- Teacher Dashboard -->
   <section id="teacherDashboard" class="page">
@@ -67,14 +89,17 @@
   </section>
 
   <!-- Student Portal -->
-  <section id="studentPortal" class="page">
-    <h1>Student Portal</h1>
-    <button onclick="startScan()">📷 Scan Attendance QR</button>
-    <div id="reader"></div>
-    <p id="result">Click the button above to start scanning</p>
-    <button onclick="showPage('studentHistory')">📋 View History</button>
-    <button onclick="logout('student')">🚪 Logout</button>
-  </section>
+ <section id="student" class="page hidden">
+  <h1>👩‍🎓 Student Portal</h1>
+  <button onclick="startScan()">📷 Scan Attendance QR</button>
+  <div id="reader" style="display:none;"></div>
+  <p id="result">Click the button above to start scanning</p>
+
+  <!-- New button -->
+  <button onclick="showSection('curriculum')">📘 View Curriculum</button>
+
+  <a href="#" onclick="logout('student')">🚪 Logout</a>
+</section>
 
   <!-- Student History -->
   <section id="studentHistory" class="page">
