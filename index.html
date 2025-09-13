@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Attendance & Curriculum</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode/html5-qrcode.min.js"></script>
+</head>
+<body>
+  <!-- Home -->
+  <section id="home" class="page active">
+    <h1>📚 Smart Attendance & Curriculum</h1>
+    <button onclick="showPage('teacherLogin')">👨‍🏫 Teacher Login</button>
+    <button onclick="showPage('studentLogin')">👩‍🎓 Student Login</button>
+  </section>
+
+  <!-- Teacher Login -->
+  <section id="teacherLogin" class="page">
+    <h1>👨‍🏫 Teacher Login</h1>
+    <input type="text" id="teacherUser" placeholder="Username">
+    <input type="password" id="teacherPass" placeholder="Password">
+    <button onclick="teacherLogin()">Login</button>
+    <p id="teacherMsg" class="error"></p>
+    <button onclick="showPage('home')">⬅ Back</button>
+  </section>
+
+  <!-- Teacher Portal -->
+  <section id="teacherPortal" class="page">
+    <h1>Teacher Portal</h1>
+    <input type="text" id="teacherName" placeholder="Teacher Name">
+    <input type="text" id="subject" placeholder="Subject">
+    <input type="text" id="className" placeholder="Class">
+    <button onclick="generateQR()">Generate QR</button>
+    <div id="qrcode"></div>
+    <p id="qrText"></p>
+    <button onclick="showPage('teacherDashboard')">📊 Dashboard</button>
+    <button onclick="logout('teacher')">🚪 Logout</button>
+  </section>
+
+  <!-- Teacher Dashboard -->
+  <section id="teacherDashboard" class="page">
+    <h1>📊 Teacher Dashboard</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Teacher</th>
+          <th>Subject</th>
+          <th>Class</th>
+          <th>Date</th>
+          <th>Students Present</th>
+        </tr>
+      </thead>
+      <tbody id="sessionTable"></tbody>
+    </table>
+    <button onclick="showPage('teacherPortal')">⬅ Back</button>
+  </section>
+
+  <!-- Student Login -->
+  <section id="studentLogin" class="page">
+    <h1>👩‍🎓 Student Login</h1>
+    <input type="text" id="studentUser" placeholder="Username">
+    <input type="password" id="studentPass" placeholder="Password">
+    <button onclick="studentLogin()">Login</button>
+    <p id="studentMsg" class="error"></p>
+    <button onclick="showPage('home')">⬅ Back</button>
+  </section>
+
+  <!-- Student Portal -->
+  <section id="studentPortal" class="page">
+    <h1>Student Portal</h1>
+    <button onclick="startScan()">📷 Scan Attendance QR</button>
+    <div id="reader"></div>
+    <p id="result">Click the button above to start scanning</p>
+    <button onclick="showPage('studentHistory')">📋 View History</button>
+    <button onclick="logout('student')">🚪 Logout</button>
+  </section>
+
+  <!-- Student History -->
+  <section id="studentHistory" class="page">
+    <h1>📋 Attendance History</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Teacher</th>
+          <th>Subject</th>
+          <th>Class</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="historyTable"></tbody>
+    </table>
+    <button onclick="showPage('studentPortal')">⬅ Back</button>
+  </section>
+
+  <!-- Curriculum -->
+  <section id="curriculum" class="page">
+    <h1>🎯 Personalized Curriculum</h1>
+    <div class="card">
+      <h2>AI & ML</h2>
+      <p>Explore ML tutorials and projects.</p>
+    </div>
+    <div class="card">
+      <h2>Cybersecurity</h2>
+      <p>Learn ethical hacking and security labs.</p>
+    </div>
+    <div class="card">
+      <h2>Web Development</h2>
+      <p>Build projects with HTML, CSS, JavaScript.</p>
+    </div>
+    <button onclick="showPage('studentPortal')">⬅ Back</button>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
